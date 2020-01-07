@@ -379,7 +379,15 @@ static inline void spin_lock(spinlock_t *lock)
 
 static inline void spin_unlock(spinlock_t *lock)
 {
+#if defined(__i386__) || defined(__x86_64__)
+	int dummy;
+	__asm__ __volatile__("xchgl %0, %1"
+						 : "=r" (dummy), "=m" (*lock)
+						 : "0" (0), "m" (*lock)
+						 : "memory");
+#else
 	*lock = 0;
+#endif
 }
 
 static inline int spin_trylock(spinlock_t *lock)
